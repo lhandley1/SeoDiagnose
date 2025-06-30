@@ -129,14 +129,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
   return httpServer;
 }
 
-function formatBytes(bytes: number): string {
-  if (bytes === 0) return '0 Bytes';
-  const k = 1024;
-  const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-  const i = Math.floor(Math.log(bytes) / Math.log(k));
-  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
-}
-
 function analyzePageSize(bytes: number): SeoTag {
   const sizeInKB = bytes / 1024;
   let status: "good" | "warning" | "missing" = "good";
@@ -190,6 +182,14 @@ function analyzeResponseTime(responseTime: number): SeoTag {
     score,
     category: "performance",
   };
+}
+
+function formatBytes(bytes: number): string {
+  if (bytes === 0) return '0 Bytes';
+  const k = 1024;
+  const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
 }
 
 function analyzeTitleTag(title: string | null): SeoTag {
@@ -388,4 +388,67 @@ function analyzeTwitterImage(twitterImage: string | null): SeoTag {
     score: isPresent ? 10 : 5,
     category: "social",
   };
+}
+
+function analyzePageSize(bytes: number): SeoTag {
+  const sizeInKB = bytes / 1024;
+  let status: "good" | "warning" | "missing" = "good";
+  let score = 10;
+  let recommendation: string | undefined;
+
+  if (sizeInKB > 1024) {
+    status = "warning";
+    score = 5;
+    recommendation = "Page size is quite large. Consider optimizing images and compressing content.";
+  } else if (sizeInKB > 2048) {
+    status = "missing";
+    score = 0;
+    recommendation = "Page size is very large and may impact loading speed significantly.";
+  }
+
+  return {
+    name: "Page Size",
+    description: "Total page size for performance",
+    content: formatBytes(bytes),
+    status,
+    recommendation,
+    isPresent: true,
+    score,
+    category: "performance",
+  };
+}
+
+function analyzeResponseTime(responseTime: number): SeoTag {
+  let status: "good" | "warning" | "missing" = "good";
+  let score = 10;
+  let recommendation: string | undefined;
+
+  if (responseTime > 1000) {
+    status = "warning";
+    score = 5;
+    recommendation = "Server response time is slow. Consider optimizing server performance.";
+  } else if (responseTime > 2000) {
+    status = "missing";
+    score = 0;
+    recommendation = "Server response time is very slow and will negatively impact user experience.";
+  }
+
+  return {
+    name: "Response Time",
+    description: "Server response time",
+    content: `${responseTime}ms`,
+    status,
+    recommendation,
+    isPresent: true,
+    score,
+    category: "performance",
+  };
+}
+
+function formatBytes(bytes: number): string {
+  if (bytes === 0) return '0 Bytes';
+  const k = 1024;
+  const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
 }

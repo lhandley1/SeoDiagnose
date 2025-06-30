@@ -1,8 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Download } from "lucide-react";
-import SeoTagItem from "@/components/seo-tag-item";
+import { Download, Globe } from "lucide-react";
+import CategorySummaryCard from "@/components/category-summary-card";
 import PreviewPanels from "@/components/preview-panels";
 import type { SeoAnalysisResult } from "@shared/schema";
 
@@ -12,9 +11,9 @@ interface AnalysisResultsProps {
 
 export default function AnalysisResults({ result }: AnalysisResultsProps) {
   const getScoreColor = (score: number) => {
-    if (score >= 80) return "text-green-600 bg-green-100";
-    if (score >= 60) return "text-yellow-600 bg-yellow-100";
-    return "text-red-600 bg-red-100";
+    if (score >= 80) return "text-green-600";
+    if (score >= 60) return "text-yellow-600";
+    return "text-red-600";
   };
 
   const getScoreLabel = (score: number) => {
@@ -23,11 +22,19 @@ export default function AnalysisResults({ result }: AnalysisResultsProps) {
     return "Needs Work";
   };
 
+  const getCategoryColor = (score: number): "red" | "orange" | "green" | "blue" => {
+    if (score >= 8) return "green";
+    if (score >= 6) return "blue";
+    if (score >= 4) return "orange";
+    return "red";
+  };
+
   const handleExportReport = () => {
     const reportData = {
       url: result.url,
-      score: result.score,
+      score: result.categoryScores.total,
       analysisDate: new Date().toISOString(),
+      categoryScores: result.categoryScores,
       tags: result.tags,
       recommendations: result.tags
         .filter(tag => tag.recommendation)
@@ -45,171 +52,113 @@ export default function AnalysisResults({ result }: AnalysisResultsProps) {
     URL.revokeObjectURL(url);
   };
 
-  const highPriorityRecommendations = result.tags.filter(tag => 
-    tag.status === "missing" && ["Title Tag", "Meta Description", "Twitter Card Type"].includes(tag.name)
-  );
-
-  const mediumPriorityRecommendations = result.tags.filter(tag => 
-    tag.status === "warning"
-  );
-
-  const lowPriorityRecommendations = result.tags.filter(tag => 
-    tag.status === "missing" && !["Title Tag", "Meta Description", "Twitter Card Type"].includes(tag.name)
-  );
+  // Group tags by category
+  const technicalTags = result.tags.filter(tag => tag.category === "technical");
+  const socialTags = result.tags.filter(tag => tag.category === "social");
+  const contentTags = result.tags.filter(tag => tag.category === "content");
+  const performanceTags = result.tags.filter(tag => tag.category === "performance");
 
   return (
-    <div className="grid lg:grid-cols-3 gap-6">
-      {/* Left Column: SEO Analysis */}
-      <div className="lg:col-span-2 space-y-6">
-        {/* SEO Score Overview */}
-        <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <CardTitle>SEO Analysis Overview</CardTitle>
-              <div className="flex items-center space-x-2">
-                <div className={`w-12 h-12 rounded-full flex items-center justify-center ${getScoreColor(result.score)}`}>
-                  <span className="font-bold text-lg">{result.score}</span>
-                </div>
-                <div className="text-sm">
-                  <div className="font-medium text-gray-900">SEO Score</div>
-                  <div className={getScoreColor(result.score).split(' ')[0]}>{getScoreLabel(result.score)}</div>
-                </div>
-              </div>
+    <div className="max-w-7xl mx-auto space-y-6">
+      {/* Header with Total Score */}
+      <div className="text-center mb-8">
+        <div className="flex items-center justify-center space-x-2 mb-4">
+          <Globe className="h-6 w-6 text-gray-600" />
+          <h2 className="text-2xl font-bold text-gray-900">SEO Analysis Results</h2>
+        </div>
+        <div className="flex items-center justify-center space-x-4">
+          <div className={`text-6xl font-bold ${getScoreColor(result.categoryScores.total)}`}>
+            {result.categoryScores.total}
+          </div>
+          <div className="text-left">
+            <div className="text-lg font-semibold text-gray-900">Total Score</div>
+            <div className={`text-base ${getScoreColor(result.categoryScores.total)}`}>
+              {getScoreLabel(result.categoryScores.total)}
             </div>
-          </CardHeader>
-          <CardContent>
-            <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              <div className="text-center p-4 bg-gray-50 rounded-lg">
-                <div className="text-2xl font-bold text-green-600">{result.foundTags}</div>
-                <div className="text-sm text-gray-600 mt-1">Tags Found</div>
-              </div>
-              <div className="text-center p-4 bg-gray-50 rounded-lg">
-                <div className="text-2xl font-bold text-yellow-600">{result.warningTags}</div>
-                <div className="text-sm text-gray-600 mt-1">Warnings</div>
-              </div>
-              <div className="text-center p-4 bg-gray-50 rounded-lg">
-                <div className="text-2xl font-bold text-red-600">{result.missingTags}</div>
-                <div className="text-sm text-gray-600 mt-1">Missing</div>
-              </div>
-              <div className="text-center p-4 bg-gray-50 rounded-lg">
-                <div className="text-2xl font-bold text-gray-600">{result.totalChecks}</div>
-                <div className="text-sm text-gray-600 mt-1">Total Checks</div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* SEO Tags Analysis */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Meta Tags Analysis</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {result.tags.map((tag, index) => (
-                <SeoTagItem key={index} tag={tag} />
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Recommendations */}
-        <Card>
-          <CardHeader>
-            <CardTitle>SEO Recommendations</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {highPriorityRecommendations.map((tag, index) => (
-                <div key={index} className="flex items-start space-x-3 p-4 bg-red-50 rounded-lg border border-red-200">
-                  <div className="w-6 h-6 bg-red-600 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-                    <span className="text-white text-xs">!</span>
-                  </div>
-                  <div>
-                    <h4 className="font-semibold text-gray-900 mb-1">High Priority</h4>
-                    <p className="text-gray-700 mb-2">{tag.recommendation}</p>
-                    <div className="text-sm text-gray-600">
-                      <strong>Impact:</strong> Critical for SEO performance
-                    </div>
-                  </div>
-                </div>
-              ))}
-
-              {mediumPriorityRecommendations.map((tag, index) => (
-                <div key={index} className="flex items-start space-x-3 p-4 bg-yellow-50 rounded-lg border border-yellow-200">
-                  <div className="w-6 h-6 bg-yellow-600 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-                    <span className="text-white text-xs">!</span>
-                  </div>
-                  <div>
-                    <h4 className="font-semibold text-gray-900 mb-1">Medium Priority</h4>
-                    <p className="text-gray-700 mb-2">{tag.recommendation}</p>
-                    <div className="text-sm text-gray-600">
-                      <strong>Impact:</strong> Improved search result appearance
-                    </div>
-                  </div>
-                </div>
-              ))}
-
-              {lowPriorityRecommendations.map((tag, index) => (
-                <div key={index} className="flex items-start space-x-3 p-4 bg-blue-50 rounded-lg border border-blue-200">
-                  <div className="w-6 h-6 bg-blue-600 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-                    <span className="text-white text-xs">i</span>
-                  </div>
-                  <div>
-                    <h4 className="font-semibold text-gray-900 mb-1">Low Priority</h4>
-                    <p className="text-gray-700 mb-2">{tag.recommendation}</p>
-                    <div className="text-sm text-gray-600">
-                      <strong>Impact:</strong> Enhanced social media presence
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
+        <div className="mt-2 text-gray-600 text-sm break-all">
+          {result.url}
+        </div>
       </div>
 
-      {/* Right Column: Previews */}
-      <div className="space-y-6">
-        <PreviewPanels result={result} />
+      {/* Category Summary Cards Grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        <CategorySummaryCard
+          category="content"
+          title="Content SEO"
+          score={result.categoryScores.content}
+          tags={contentTags}
+          color={getCategoryColor(result.categoryScores.content)}
+        />
+        <CategorySummaryCard
+          category="technical"
+          title="Technical SEO"
+          score={result.categoryScores.technical}
+          tags={technicalTags}
+          color={getCategoryColor(result.categoryScores.technical)}
+        />
+        <CategorySummaryCard
+          category="social"
+          title="Social Media"
+          score={result.categoryScores.social}
+          tags={socialTags}
+          color={getCategoryColor(result.categoryScores.social)}
+        />
+        <CategorySummaryCard
+          category="performance"
+          title="Performance"
+          score={result.categoryScores.performance}
+          tags={performanceTags}
+          color={getCategoryColor(result.categoryScores.performance)}
+        />
+      </div>
 
-        {/* Analysis Stats */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Analysis Details</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3 text-sm">
-              <div className="flex items-center justify-between">
-                <span className="text-gray-600">Analysis time:</span>
-                <span className="font-medium">{result.analysisTime}ms</span>
+      {/* Previews and Export Section */}
+      <div className="grid lg:grid-cols-4 gap-6">
+        <div className="lg:col-span-3">
+          <PreviewPanels result={result} />
+        </div>
+        
+        <div className="lg:col-span-1">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg">Analysis Details</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3 text-sm">
+                <div className="flex items-center justify-between">
+                  <span className="text-gray-600">Analysis time:</span>
+                  <span className="font-medium">{result.analysisTime}ms</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-gray-600">Page size:</span>
+                  <span className="font-medium">{result.pageSize}</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-gray-600">Response time:</span>
+                  <span className="font-medium">{result.responseTime}ms</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-gray-600">Tags analyzed:</span>
+                  <span className="font-medium">{result.totalChecks}</span>
+                </div>
               </div>
-              <div className="flex items-center justify-between">
-                <span className="text-gray-600">Page size:</span>
-                <span className="font-medium">{result.pageSize}</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-gray-600">Response time:</span>
-                <span className="font-medium">{result.responseTime}ms</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-gray-600">Last analyzed:</span>
-                <span className="font-medium">Just now</span>
-              </div>
-            </div>
 
-            <div className="mt-6 pt-4 border-t border-gray-200">
-              <Button
-                onClick={handleExportReport}
-                variant="outline"
-                className="w-full"
-              >
-                <Download className="mr-2 h-4 w-4" />
-                Export Report
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+              <div className="mt-6 pt-4 border-t border-gray-200">
+                <Button
+                  onClick={handleExportReport}
+                  variant="outline"
+                  className="w-full"
+                  size="sm"
+                >
+                  <Download className="mr-2 h-4 w-4" />
+                  Export Report
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </div>
   );

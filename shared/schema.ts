@@ -15,6 +15,8 @@ export interface SeoTag {
   characterCount?: number;
   maxLength?: number;
   isPresent: boolean;
+  score: number; // Score out of 10
+  category: "technical" | "social" | "content" | "performance";
 }
 
 export interface SeoAnalysisResult {
@@ -38,4 +40,11 @@ export interface SeoAnalysisResult {
   analysisTime: number;
   pageSize: string;
   responseTime: number;
+  categoryScores: {
+    technical: number;
+    social: number;
+    content: number;
+    performance: number;
+    total: number;
+  };
 }
