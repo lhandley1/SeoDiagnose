@@ -1,4 +1,5 @@
-# SeoDiagnose - SEO Tag Analyzer (Built with Replit AI Agent)
+# SeoDiagnose - SEO Tag Analyzer
+# Built with Replit AI Agent
 
 ## Overview
 
