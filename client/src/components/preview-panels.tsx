@@ -20,9 +20,15 @@ export default function PreviewPanels({ result }: PreviewPanelsProps) {
     }
   };
 
+  // Check if social media tags are present
+  const hasFacebookTags = result.ogTitle || result.ogDescription || result.ogImage || result.ogSiteName;
+  const hasTwitterTags = result.twitterCard || result.twitterTitle || result.twitterDescription || result.twitterImage;
+
+  const totalPreviews = 1 + (hasFacebookTags ? 1 : 0) + (hasTwitterTags ? 1 : 0);
+  
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-      {/* Google Search Preview */}
+    <div className={`grid grid-cols-1 ${totalPreviews === 2 ? 'lg:grid-cols-2' : totalPreviews === 3 ? 'lg:grid-cols-3' : ''} gap-4`}>
+      {/* Google Search Preview - Always shown */}
       <Card className="h-fit">
         <CardHeader className="pb-3">
           <CardTitle className="flex items-center text-base">
@@ -52,79 +58,83 @@ export default function PreviewPanels({ result }: PreviewPanelsProps) {
         </CardContent>
       </Card>
 
-      {/* Facebook Preview */}
-      <Card className="h-fit">
-        <CardHeader className="pb-3">
-          <CardTitle className="flex items-center text-base">
-            <svg className="w-4 h-4 mr-2 text-blue-600" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
-            </svg>
-            Facebook
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="pt-0">
-          <div className="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
-            {result.ogImage && (
-              <img 
-                src={result.ogImage} 
-                alt="Open Graph preview" 
-                className="w-full h-32 object-cover"
-                onError={(e) => {
-                  (e.target as HTMLImageElement).style.display = 'none';
-                }}
-              />
-            )}
-            <div className="p-3 bg-gray-50 dark:bg-gray-800">
-              <div className="text-xs text-gray-500 dark:text-gray-400 uppercase mb-1">
-                {result.ogSiteName || new URL(result.url).hostname.toUpperCase()}
+      {/* Facebook Preview - Only shown if Facebook tags exist */}
+      {hasFacebookTags && (
+        <Card className="h-fit">
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center text-base">
+              <svg className="w-4 h-4 mr-2 text-blue-600" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+              </svg>
+              Facebook
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="pt-0">
+            <div className="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
+              {result.ogImage && (
+                <img 
+                  src={result.ogImage} 
+                  alt="Open Graph preview" 
+                  className="w-full h-32 object-cover"
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).style.display = 'none';
+                  }}
+                />
+              )}
+              <div className="p-3 bg-gray-50 dark:bg-gray-800">
+                <div className="text-xs text-gray-500 dark:text-gray-400 uppercase mb-1">
+                  {result.ogSiteName || new URL(result.url).hostname.toUpperCase()}
+                </div>
+                <h4 className="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-1 leading-tight">
+                  {result.ogTitle || result.title || "No title found"}
+                </h4>
+                <p className="text-xs text-gray-600 dark:text-gray-300 leading-relaxed">
+                  {truncateText(result.ogDescription || result.metaDescription || "No description found", 100)}
+                </p>
               </div>
-              <h4 className="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-1 leading-tight">
-                {result.ogTitle || result.title || "No title found"}
-              </h4>
-              <p className="text-xs text-gray-600 dark:text-gray-300 leading-relaxed">
-                {truncateText(result.ogDescription || result.metaDescription || "No description found", 100)}
-              </p>
             </div>
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      )}
 
-      {/* Twitter Preview */}
-      <Card className="h-fit">
-        <CardHeader className="pb-3">
-          <CardTitle className="flex items-center text-base">
-            <svg className="w-4 h-4 mr-2 text-black dark:text-white" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
-            </svg>
-            Twitter
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="pt-0">
-          <div className="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
-            {(result.twitterImage || result.ogImage) && (
-              <img 
-                src={result.twitterImage || result.ogImage} 
-                alt="Twitter card preview" 
-                className="w-full h-32 object-cover"
-                onError={(e) => {
-                  (e.target as HTMLImageElement).style.display = 'none';
-                }}
-              />
-            )}
-            <div className="p-3">
-              <h4 className="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-1 leading-tight">
-                {result.twitterTitle || result.ogTitle || result.title || "No title found"}
-              </h4>
-              <p className="text-xs text-gray-600 dark:text-gray-300 mb-2 leading-relaxed">
-                {truncateText(result.twitterDescription || result.ogDescription || result.metaDescription || "No description found", 100)}
-              </p>
-              <div className="text-xs text-gray-500 dark:text-gray-400">
-                {new URL(result.url).hostname}
+      {/* Twitter Preview - Only shown if Twitter tags exist */}
+      {hasTwitterTags && (
+        <Card className="h-fit">
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center text-base">
+              <svg className="w-4 h-4 mr-2 text-black dark:text-white" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+              </svg>
+              Twitter
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="pt-0">
+            <div className="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
+              {(result.twitterImage || result.ogImage) && (
+                <img 
+                  src={result.twitterImage || result.ogImage} 
+                  alt="Twitter card preview" 
+                  className="w-full h-32 object-cover"
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).style.display = 'none';
+                  }}
+                />
+              )}
+              <div className="p-3">
+                <h4 className="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-1 leading-tight">
+                  {result.twitterTitle || result.ogTitle || result.title || "No title found"}
+                </h4>
+                <p className="text-xs text-gray-600 dark:text-gray-300 mb-2 leading-relaxed">
+                  {truncateText(result.twitterDescription || result.ogDescription || result.metaDescription || "No description found", 100)}
+                </p>
+                <div className="text-xs text-gray-500 dark:text-gray-400">
+                  {new URL(result.url).hostname}
+                </div>
               </div>
             </div>
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }

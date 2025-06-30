@@ -79,6 +79,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const contentTags = tags.filter(tag => tag.category === "content");
       const performanceTags = tags.filter(tag => tag.category === "performance");
 
+      // Check if social media tags are being used
+      const hasSocialMedia = ogTitle || ogDescription || ogImage || ogSiteName || 
+                            twitterCard || twitterTitle || twitterDescription || twitterImage;
+
       const categoryScores = {
         technical: Math.round(technicalTags.reduce((sum, tag) => sum + tag.score, 0) / Math.max(technicalTags.length, 1) * 10) / 10,
         social: Math.round(socialTags.reduce((sum, tag) => sum + tag.score, 0) / Math.max(socialTags.length, 1) * 10) / 10,
@@ -87,7 +91,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
         total: 0
       };
 
-      categoryScores.total = Math.round((categoryScores.technical + categoryScores.social + categoryScores.content + categoryScores.performance) * 2.5);
+      // Adaptive total score calculation - reduce social media weight if not used
+      if (hasSocialMedia) {
+        // Full weight when social media is used: technical(25%) + social(25%) + content(25%) + performance(25%)
+        categoryScores.total = Math.round((categoryScores.technical + categoryScores.social + categoryScores.content + categoryScores.performance) * 2.5);
+      } else {
+        // Reduced social weight when not used: technical(35%) + social(10%) + content(35%) + performance(20%)
+        categoryScores.total = Math.round(
+          (categoryScores.technical * 3.5) + 
+          (categoryScores.social * 1.0) + 
+          (categoryScores.content * 3.5) + 
+          (categoryScores.performance * 2.0)
+        );
+      }
 
       const result: SeoAnalysisResult = {
         url,
