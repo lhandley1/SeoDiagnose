@@ -1,7 +1,16 @@
 import { z } from "zod";
 
 export const analyzeUrlSchema = z.object({
-  url: z.string().url("Please enter a valid URL"),
+  url: z.string()
+    .min(1, "Please enter a URL")
+    .transform((url) => {
+      // Add https:// if no protocol is specified
+      if (!url.startsWith('http://') && !url.startsWith('https://')) {
+        return `https://${url}`;
+      }
+      return url;
+    })
+    .pipe(z.string().url("Please enter a valid URL")),
 });
 
 export type AnalyzeUrlRequest = z.infer<typeof analyzeUrlSchema>;

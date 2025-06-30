@@ -63,7 +63,7 @@ export default function UrlInput({ onAnalysisComplete }: UrlInputProps) {
                     <FormControl>
                       <div className="relative">
                         <Input
-                          placeholder="https://example.com"
+                          placeholder="example.com"
                           {...field}
                           className="h-12 text-base bg-white dark:bg-gray-800 border-2 border-gray-300 dark:border-gray-600 focus:border-blue-500 dark:focus:border-blue-400 rounded-xl pr-12"
                         />
