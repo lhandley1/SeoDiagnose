@@ -11,6 +11,10 @@ export default function Home() {
     setAnalysisResult(result);
   };
 
+  const handleBackToHome = () => {
+    setAnalysisResult(null);
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       {/* Header */}
@@ -45,7 +49,7 @@ export default function Home() {
             <UrlInput onAnalysisComplete={handleAnalysisComplete} />
           </div>
         ) : (
-          <AnalysisResults result={analysisResult} />
+          <AnalysisResults result={analysisResult} onBack={handleBackToHome} />
         )}
       </main>
 

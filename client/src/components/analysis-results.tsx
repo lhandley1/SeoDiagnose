@@ -1,15 +1,16 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Download, Globe } from "lucide-react";
+import { Download, Globe, ArrowLeft } from "lucide-react";
 import CategorySummaryCard from "@/components/category-summary-card";
 import PreviewPanels from "@/components/preview-panels";
 import type { SeoAnalysisResult } from "@shared/schema";
 
 interface AnalysisResultsProps {
   result: SeoAnalysisResult;
+  onBack: () => void;
 }
 
-export default function AnalysisResults({ result }: AnalysisResultsProps) {
+export default function AnalysisResults({ result, onBack }: AnalysisResultsProps) {
   const getScoreColor = (score: number) => {
     if (score >= 80) return "text-green-600";
     if (score >= 60) return "text-yellow-600";
@@ -60,11 +61,26 @@ export default function AnalysisResults({ result }: AnalysisResultsProps) {
 
   return (
     <div className="max-w-7xl mx-auto space-y-6">
+      {/* Back Button Header */}
+      <div className="flex items-center justify-between mb-6">
+        <Button
+          onClick={onBack}
+          variant="ghost"
+          className="flex items-center space-x-2 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          <span>Back to Home</span>
+        </Button>
+        <div className="flex items-center space-x-2">
+          <Globe className="h-5 w-5 text-gray-600 dark:text-gray-400" />
+          <span className="text-lg font-semibold text-gray-900 dark:text-white">SeoDiagnose</span>
+        </div>
+      </div>
+
       {/* Header with Total Score */}
       <div className="text-center mb-8">
         <div className="flex items-center justify-center space-x-2 mb-4">
-          <Globe className="h-6 w-6 text-gray-600" />
-          <h2 className="text-2xl font-bold text-gray-900">SEO Analysis Results</h2>
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-white">SEO Analysis Results</h2>
         </div>
         <div className="flex items-center justify-center space-x-4">
           <div className={`text-6xl font-bold ${getScoreColor(result.categoryScores.total)}`}>
