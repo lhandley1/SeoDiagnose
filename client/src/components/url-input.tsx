@@ -33,7 +33,7 @@ export default function UrlInput({ onAnalysisComplete }: UrlInputProps) {
       onAnalysisComplete(result);
       toast({
         title: "Analysis Complete",
-        description: `SEO analysis completed with a score of ${result.score}%`,
+        description: `SEO analysis completed with a score of ${result.categoryScores.total}/100`,
       });
     },
     onError: (error) => {
