@@ -1,7 +1,7 @@
 # 🔍 SeoDiagnose - SEO Tag Analyzer 
-# (Built with Replit AI Agent 🧠)
+## Built with [Replit AI Agent 🧠](https://docs.replit.com/replitai/agent)
 
-SeoDiagnose is a simple "vibe coded", powerful web app that checks and scores SEO tags on any website. Just paste a URL, and you'll get a full analysis with colorful cards, scores, previews, and tips to improve your SEO! 🎯
+SeoDiagnose is a simple **"vibe coded"**, powerful web app that checks and scores SEO tags on any website. Just paste a URL, and you'll get a full analysis with colorful cards, scores, previews, and tips to improve your SEO! 🎯
 
 ---
 
